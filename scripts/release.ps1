@@ -4,7 +4,7 @@
 #   pwsh -File scripts/release.ps1              # 创建标签并推送，触发发布
 #   pwsh -File scripts/release.ps1 -SkipPush    # 只在本地打标签（预览用）
 #
-# 前提：版本号先改好（src-tauri/tauri.conf.json 与 package.json 保持一致），
+# 前提：版本号先改好（src-tauri/tauri.conf.json、package.json 和 Cargo.toml 保持一致），
 # 且工作区没有未提交的改动。
 
 param(
@@ -20,8 +20,9 @@ try {
     $version = (Get-Content 'src-tauri\tauri.conf.json' -Raw | ConvertFrom-Json).version
     $packageVersion = (Get-Content 'package.json' -Raw | ConvertFrom-Json).version
 
-    if ($version -ne $packageVersion) {
-        throw "版本号不一致：tauri.conf.json=$version，package.json=$packageVersion"
+    $cargoVersion = (Select-String -Path 'src-tauri/Cargo.toml' -Pattern '^version = "([^"]+)"$').Matches.Groups[1].Value
+    if ($version -ne $packageVersion -or $version -ne $cargoVersion) {
+        throw "版本号不一致：tauri.conf.json=$version，package.json=$packageVersion，Cargo.toml=$cargoVersion"
     }
 
     $tags = git tag -l "v$version"
@@ -36,6 +37,7 @@ try {
 
     $tag = "v$version"
     git tag -a $tag -m "Jot $tag"
+    if ($LASTEXITCODE -ne 0) { throw "创建标签失败" }
 
     if ($SkipPush) {
         Write-Host "已在本地创建标签 $tag（未推送）。"

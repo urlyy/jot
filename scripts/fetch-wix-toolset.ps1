@@ -11,9 +11,24 @@ $ProgressPreference = 'SilentlyContinue'
 
 $version = 'wix3141rtm'
 $fileName = 'wix314-binaries.zip'
-$dest = Join-Path $env:LOCALAPPDATA 'tauri\WixTools314'
+$dest = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'tauri\WixTools314'
+# 与 Tauri CLI 2.11.2 的 WiX 校验值和必需文件一致。
+$sha256 = '6ac824e1642d6f7277d0ed7ea09411a508f6116ba6fae0aa5f2c7daa2ff43d31'
+$requiredFiles = @(
+    'candle.exe', 'candle.exe.config', 'darice.cub', 'light.exe', 'light.exe.config',
+    'wconsole.dll', 'winterop.dll', 'wix.dll', 'WixUIExtension.dll', 'WixUtilExtension.dll'
+)
 
-if ((Test-Path (Join-Path $dest 'candle.exe')) -and (Test-Path (Join-Path $dest 'light.exe'))) {
+function Test-WixCache {
+    foreach ($file in $requiredFiles) {
+        if (-not (Test-Path -LiteralPath (Join-Path $dest $file) -PathType Leaf)) {
+            return $false
+        }
+    }
+    return $true
+}
+
+if (Test-WixCache) {
     Write-Host "WiX 工具链已就绪：$dest"
     exit 0
 }
@@ -33,6 +48,9 @@ foreach ($url in $mirrors) {
         Write-Host "尝试下载：$url"
         $sw = [System.Diagnostics.Stopwatch]::StartNew()
         Invoke-WebRequest -Uri $url -OutFile $tmp -TimeoutSec 300
+        if ((Get-FileHash -LiteralPath $tmp -Algorithm SHA256).Hash -ne $sha256) {
+            throw 'WiX 压缩包 SHA-256 校验失败。'
+        }
         $sw.Stop()
         Write-Host ("下载完成：{0:N1} MB，用时 {1:N1} 秒" -f ((Get-Item $tmp).Length / 1MB), ($sw.ElapsedMilliseconds / 1000))
         $downloaded = $true
@@ -52,8 +70,8 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::ExtractToDirectory($tmp, $dest, $true)
 Remove-Item -Force $tmp -ErrorAction SilentlyContinue
 
-if (-not ((Test-Path (Join-Path $dest 'candle.exe')) -and (Test-Path (Join-Path $dest 'light.exe')))) {
-    Write-Error "解压后没有找到 candle.exe / light.exe，目录可能不对：$dest"
+if (-not (Test-WixCache)) {
+    Write-Error "WiX 缓存缺少打包所需文件：$dest"
     exit 1
 }
 

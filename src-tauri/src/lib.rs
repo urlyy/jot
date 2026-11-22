@@ -7,8 +7,6 @@ pub mod hotkey;
 #[cfg(target_os = "linux")]
 mod linux_x11;
 pub mod llm;
-#[cfg(target_os = "macos")]
-pub mod native_hotkey;
 pub mod output;
 pub mod pipeline;
 pub mod platform;

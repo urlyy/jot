@@ -1,7 +1,7 @@
 {
   "name": "jot-desktop",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "跨平台桌面语音输入工具：按住快捷键说话，文字直接进入光标处",
   "keywords": [

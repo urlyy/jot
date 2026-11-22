@@ -15,7 +15,7 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
@@ -31,15 +31,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
+
+      - name: 校验 tag 与版本号一致
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          CARGO_VERSION=$(sed -n 's/^version = "\(.*\)"$/\1/p' src-tauri/Cargo.toml)
+          if [ "$VERSION" != "$PACKAGE_VERSION" ] || [ "$VERSION" != "$CARGO_VERSION" ]; then
+            echo "::error::tauri.conf.json、package.json 与 Cargo.toml 的版本号必须一致"
+            exit 1
+          fi
+          TAG="$RELEASE_TAG"
+          if [ "v$VERSION" != "$TAG" ]; then
+            echo "::error::tag 是 $TAG，但 src-tauri/tauri.conf.json 里是 $VERSION；请先改版本号再打 tag"
+            exit 1
+          fi
+          echo "版本一致：$TAG"
 
       - run: npm ci
       - run: npx tsc --noEmit
       - run: npm run build
+      - run: npm run lint
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -72,17 +92,26 @@ jobs:
         include:
           - os: windows-latest
             platform: windows
+            bundle: src-tauri/target/release/bundle
+            extensions: msi
           - os: macos-latest
             platform: macos
+            args: --target universal-apple-darwin
+            bundle: src-tauri/target/universal-apple-darwin/release/bundle
+            extensions: dmg
           - os: ubuntu-22.04
             platform: linux
+            bundle: src-tauri/target/release/bundle
+            extensions: deb AppImage
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: 安装 Linux 系统依赖
@@ -110,39 +139,54 @@ jobs:
 
       - run: npm ci
 
-      - name: 校验 tag 与版本号一致
+      - name: 构建安装包
+        run: npm run tauri build -- --ci ${{ matrix.args }}
+
+      - name: 收集安装包
         shell: bash
         run: |
-          VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
-          TAG="$RELEASE_TAG"
-          if [ "v$VERSION" != "$TAG" ]; then
-            echo "::error::tag 是 $TAG，但 src-tauri/tauri.conf.json 里是 $VERSION；请先改版本号再打 tag"
-            exit 1
-          fi
-          echo "版本一致：$TAG"
+          mkdir installer-assets
+          bundle="${{ matrix.bundle }}"
+          for extension in ${{ matrix.extensions }}; do
+            directory=$(printf "%s" "$extension" | tr "[:upper:]" "[:lower:]")
+            files=("$bundle/$directory/"*."$extension")
+            if [[ ! -f "${files[0]}" ]]; then
+              echo "::error::缺少 .$extension 安装包"
+              exit 1
+            fi
+            cp "${files[@]}" installer-assets/
+          done
 
-      - name: 打包并发布 Release
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: ${{ env.RELEASE_TAG }}
-          releaseName: 'Jot ${{ env.RELEASE_TAG }}'
-          releaseBody: |
-            跨平台桌面语音输入工具。
-
-            - Windows：下载 `.msi` 安装
-            - macOS：下载 `.dmg`，首次打开需右键「打开」（未签名）
-            - Linux：下载 `.AppImage` 或 `.deb`
-          releaseDraft: false
-          prerelease: false
-          args: ${{ matrix.platform == 'macos' && '--target universal-apple-darwin' || '' }}
-
-      - name: 备份产物到 Actions Artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: jot-${{ matrix.platform }}
-          path: |
-            src-tauri/target/release/bundle/**
-            src-tauri/target/*/release/bundle/**
-          if-no-files-found: warn
+          path: installer-assets/
+          if-no-files-found: error
+          overwrite: true
+
+  publish:
+    name: 发布 GitHub Release
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: jot-*
+          path: installer-assets
+          merge-multiple: true
+
+      - name: 上传安装包
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" installer-assets/* --clobber
+          else
+            gh release create "$RELEASE_TAG" installer-assets/* --verify-tag \
+              --title "Jot $RELEASE_TAG" \
+              --notes "Windows 下载 .msi，macOS 下载 .dmg，Linux 下载 .AppImage 或 .deb。"
+          fi

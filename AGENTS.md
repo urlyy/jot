@@ -41,7 +41,7 @@ scripts/                 release.ps1、fetch-wix-toolset.ps1
 
 ```bash
 npm run tauri dev                 # 开发
-npm run tauri build -- --bundles msi   # 只出 MSI（Windows）
+npm run tauri build               # Windows: MSI，macOS: DMG，Linux: DEB / AppImage
 npx tsc --noEmit                  # 前端类型检查
 npm run build                     # 前端构建
 npm run lint                      # eslint
@@ -83,7 +83,7 @@ cd src-tauri && cargo check --all-targets
 
 1. 改版本号：`src-tauri/tauri.conf.json`、`package.json`、`src-tauri/Cargo.toml` 保持一致
 2. 提交后执行 `pwsh -File scripts/release.ps1`
-3. 脚本打 `v<版本>` 标签并推送，`.github/workflows/release.yml` 会先跑测试再三平台打包发布
+3. 脚本打 `v<版本>` 标签并推送，`.github/workflows/release.yml` 从标签检出代码，通过检查并收齐三平台安装包后上传到 GitHub Release
 
 ## 已知限制
 
