@@ -15,7 +15,6 @@
     "dictation"
   ],
   "author": "Jot contributors",
-  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

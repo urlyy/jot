@@ -3,7 +3,6 @@ name = "jot"
 version = "0.1.1"
 description = "Jot - 轻量语音输入：录音、转写、润色、键入"
 authors = ["Jot contributors"]
-license = "MIT"
 edition = "2021"
 rust-version = "1.82"
 

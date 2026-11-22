@@ -132,6 +132,3 @@ pwsh -File scripts/release.ps1
 
 校验版本号与工作区后打 `v*` 标签并推送，GitHub Actions 三平台打包并发布 Release。
 
-## 许可
-
-MIT
