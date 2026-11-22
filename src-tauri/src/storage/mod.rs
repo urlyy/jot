@@ -58,7 +58,7 @@ fn default_hotkey_mode() -> String {
 }
 
 fn default_max_recording_seconds() -> u32 {
-    30
+    360
 }
 
 fn default_stt_provider() -> String {
@@ -153,7 +153,7 @@ fn default_capsule_auto_hide() -> bool {
 
 /// The complete, persisted user configuration.
 ///
-/// Field names, types and defaults mirror `INTERFACE.md` exactly. Unknown
+/// Field names, types and defaults match the frontend `AppConfig` exactly. Unknown
 /// fields are ignored on read and missing fields fall back to their default.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(default)]
@@ -558,7 +558,7 @@ mod tests {
         let config = AppConfig::default();
         assert_eq!(config.hotkey, "Ctrl+/");
         assert_eq!(config.hotkey_mode, "hold");
-        assert_eq!(config.max_recording_seconds, 30);
+        assert_eq!(config.max_recording_seconds, 360);
         assert_eq!(config.stt_provider, "openai");
         assert_eq!(config.stt_volc_resource_id, "volc.seedasr.sauc.duration");
         assert_eq!(config.stt_model, "whisper-1");
@@ -596,7 +596,7 @@ mod tests {
 
         assert_eq!(config.hotkey, "Ctrl+Shift+A");
         assert_eq!(config.hotkey_mode, "hold");
-        assert_eq!(config.max_recording_seconds, 30);
+        assert_eq!(config.max_recording_seconds, 360);
         assert_eq!(config.stt_provider, "openai");
         assert_eq!(config.stt_volc_resource_id, "volc.seedasr.sauc.duration");
         assert_eq!(config.dictionary, vec!["Jot".to_string()]);

@@ -20,7 +20,7 @@ function safeUnlisten(unlisten: Unlisten) {
 }
 
 /**
- * 按 INTERFACE.md 订阅全部后端事件。
+ * 订阅全部后端事件（名字见 src/lib/tauri.ts 中的事件类型）。
  * 录音中托盘/快捷键触发的状态变化只来自 pipeline:state，前端不做任何猜测。
  */
 export function useTauriEvents() {

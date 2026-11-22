@@ -7,6 +7,12 @@ interface Props {
   disabled?: boolean
 }
 
+/**
+ * 开关。
+ *
+ * 注意：滑块必须显式给 `left`。`<button>` 的内容默认居中，绝对定位元素若只写
+ * `top` 不写 `left`，会以「居中后的静态位置」为原点，再叠加 translate 就会顶出轨道。
+ */
 export function Toggle({ checked, onChange, label, ariaLabel, disabled = false }: Props) {
   return (
     <label
@@ -19,7 +25,7 @@ export function Toggle({ checked, onChange, label, ariaLabel, disabled = false }
         aria-label={ariaLabel ?? label}
         disabled={disabled}
         onClick={() => onChange(!checked)}
-        className={`relative h-[24px] w-[42px] shrink-0 rounded-full outline-none transition-[background-color,box-shadow,transform] duration-200 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 ${
+        className={`relative h-[24px] w-[42px] shrink-0 overflow-hidden rounded-full border-none p-0 outline-none transition-[background-color,box-shadow] duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50 ${
           checked
             ? 'bg-accent shadow-[inset_0_1px_1px_rgba(0,0,0,0.14)]'
             : 'bg-bg-tertiary shadow-[inset_0_1px_2px_rgba(18,18,30,0.12)]'
@@ -27,8 +33,8 @@ export function Toggle({ checked, onChange, label, ariaLabel, disabled = false }
       >
         <span
           aria-hidden="true"
-          className={`absolute top-[2px] h-[20px] w-[20px] rounded-full bg-white shadow-[0_1px_3px_rgba(18,18,30,0.28)] transition-transform duration-200 ${
-            checked ? 'translate-x-[20px]' : 'translate-x-[2px]'
+          className={`absolute left-[2px] top-[2px] h-[20px] w-[20px] rounded-full bg-white shadow-[0_1px_3px_rgba(18,18,30,0.28)] transition-transform duration-200 ${
+            checked ? 'translate-x-[18px]' : 'translate-x-0'
           }`}
         />
       </button>

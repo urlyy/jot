@@ -25,7 +25,7 @@ export type VolcResourceId = 'volc.seedasr.sauc.duration' | 'volc.bigasr.sauc.du
 export type PlatformOs = 'windows' | 'macos' | 'linux' | 'unknown'
 
 /**
- * 精简版配置。字段顺序、名称、类型严格遵循 INTERFACE.md，
+ * 配置结构。字段顺序、名称、类型必须与后端 AppConfig 保持一致，
  * 任何 invoke 的 patch 也只能使用这里的字段名。
  */
 export interface AppConfig {
@@ -68,7 +68,7 @@ export interface AppConfig {
 export const DEFAULT_CONFIG: AppConfig = {
   hotkey: 'Ctrl+/',
   hotkey_mode: 'hold',
-  max_recording_seconds: 30,
+  max_recording_seconds: 360,
 
   stt_provider: 'openai',
   stt_volc_resource_id: 'volc.seedasr.sauc.duration',

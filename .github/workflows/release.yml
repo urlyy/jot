@@ -43,6 +43,18 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      - name: 安装 Linux 系统依赖（cargo test 需要）
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libasound2-dev \
+            libssl-dev \
+            libxdo-dev
+
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
