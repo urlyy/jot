@@ -1,0 +1,60 @@
+{
+  "name": "jot-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "跨平台桌面语音输入工具：按住快捷键说话，文字直接进入光标处",
+  "keywords": [
+    "speech-to-text",
+    "stt",
+    "whisper",
+    "llm",
+    "tauri",
+    "desktop",
+    "voice-input",
+    "dictation"
+  ],
+  "author": "Jot contributors",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "lint": "eslint src/",
+    "format": "prettier --write src/",
+    "format:check": "prettier --check src/"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "2.11.0",
+    "@tauri-apps/plugin-clipboard-manager": "^2.2",
+    "@tauri-apps/plugin-global-shortcut": "^2.2",
+    "@tauri-apps/plugin-opener": "^2.2",
+    "@tauri-apps/plugin-store": "^2.2",
+    "lucide-react": "^0.460",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zustand": "^5.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/vite": "^4.3.1",
+    "@tauri-apps/cli": "2.11.2",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^6.0.2",
+    "eslint": "^10.8.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.3",
+    "prettier": "^3.5",
+    "tailwindcss": "^4.1",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.65.0",
+    "vite": "^8.0.16"
+  },
+  "overrides": {
+    "brace-expansion": "5.0.12",
+    "nanoid": "3.3.18",
+    "postcss": "8.5.23"
+  }
+}

@@ -1,0 +1,136 @@
+name: 打包发布
+
+# 触发方式：
+#   1) 推一个 v* 标签（推荐，见 scripts/release.ps1）
+#   2) 手动触发，填入要发布的 tag
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '要发布的 tag，例如 v0.1.0'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
+jobs:
+  # 先跑一遍测试，挂了就不发布，避免把坏包发出去
+  verify:
+    name: 测试
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run build
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: 后端单元测试
+        working-directory: src-tauri
+        run: cargo test --lib
+
+  release:
+    name: 打包（${{ matrix.platform }}）
+    needs: verify
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows
+          - os: macos-latest
+            platform: macos
+          - os: ubuntu-22.04
+            platform: linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: 安装 Linux 系统依赖
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libasound2-dev \
+            libssl-dev \
+            libxdo-dev
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: 安装 macOS 双架构 target
+        if: matrix.platform == 'macos'
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      - name: 校验 tag 与版本号一致
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          TAG="$RELEASE_TAG"
+          if [ "v$VERSION" != "$TAG" ]; then
+            echo "::error::tag 是 $TAG，但 src-tauri/tauri.conf.json 里是 $VERSION；请先改版本号再打 tag"
+            exit 1
+          fi
+          echo "版本一致：$TAG"
+
+      - name: 打包并发布 Release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ env.RELEASE_TAG }}
+          releaseName: 'Jot ${{ env.RELEASE_TAG }}'
+          releaseBody: |
+            跨平台桌面语音输入工具。
+
+            - Windows：下载 `.msi` 安装
+            - macOS：下载 `.dmg`，首次打开需右键「打开」（未签名）
+            - Linux：下载 `.AppImage` 或 `.deb`
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.platform == 'macos' && '--target universal-apple-darwin' || '' }}
+
+      - name: 备份产物到 Actions Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jot-${{ matrix.platform }}
+          path: |
+            src-tauri/target/release/bundle/**
+            src-tauri/target/*/release/bundle/**
+          if-no-files-found: warn

@@ -1,0 +1,300 @@
+@import 'tailwindcss';
+
+/*
+ * Jot 设计令牌
+ * 冷灰底 + 靛蓝主色，整体偏工具感，避免花哨渐变。
+ */
+
+@theme {
+  /* 背景层级 */
+  --color-bg-primary: #f4f4f7;
+  --color-bg-secondary: #e9e9f0;
+  --color-bg-tertiary: #dedee7;
+  --color-bg-elevated: #ffffff;
+
+  /* 文字层级 */
+  --color-text-primary: #16161d;
+  --color-text-secondary: #5b5b6b;
+  --color-text-tertiary: #66667c;
+
+  /* 主色 */
+  --color-accent: #5a5af0;
+  --color-accent-hover: #4a4ad8;
+  --color-accent-light: #ecedfd;
+  /* 作为“文字/图标”使用的主色：深色主题下需要更亮才够对比度 */
+  --color-accent-text: #5a5af0;
+
+  /* 语义色（浅色主题下均满足 4.5:1） */
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-error: #b91c1c;
+
+  /* 胶囊浮层：始终是深色磨砂药丸，不随主题反转 */
+  --color-capsule-base: #191920;
+  --color-rec: #ff4d4f;
+
+  /* 描边 */
+  --color-border: rgba(18, 18, 30, 0.09);
+  --color-border-focus: #5a5af0;
+
+  /* 字体 */
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', Roboto,
+    sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+
+  /* 字号 */
+  --text-caption: 11px;
+  --text-footnote: 13px;
+  --text-body: 15px;
+  --text-headline: 17px;
+  --text-title: 22px;
+
+  /* 圆角 */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 2px rgba(18, 18, 30, 0.06);
+  --shadow-md: 0 4px 12px rgba(18, 18, 30, 0.08);
+  --shadow-lg: 0 10px 30px rgba(18, 18, 30, 0.1);
+  --shadow-float: 0 18px 50px rgba(18, 18, 30, 0.14);
+
+  /* 缓动 */
+  --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-sans);
+  font-weight: 450;
+  letter-spacing: -0.006em;
+  background: transparent;
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ─── 深色主题 ─── */
+.dark {
+  --color-bg-primary: #141419;
+  --color-bg-secondary: #1d1d25;
+  --color-bg-tertiary: #26262f;
+  --color-bg-elevated: #1c1c23;
+
+  --color-text-primary: #ececf2;
+  --color-text-secondary: #a3a3b4;
+  --color-text-tertiary: #8b8b9e;
+
+  --color-accent-light: #24244a;
+  --color-accent-text: #a5a5ff;
+
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+
+  --color-border: rgba(255, 255, 255, 0.08);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.4);
+  --shadow-float: 0 18px 50px rgba(0, 0, 0, 0.5);
+}
+
+/* 无边框窗口的拖动区域 */
+[data-tauri-drag-region] {
+  cursor: move;
+}
+
+/* ─── 提示条入场 / 退场 ─── */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+
+.toast-enter {
+  animation: toast-in 180ms var(--ease-out) both;
+}
+
+.toast-leave {
+  animation: toast-out 150ms var(--ease-out) forwards;
+}
+
+/* ─── 设置页页签切换 ─── */
+@keyframes pane-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.settings-pane {
+  animation: pane-in 180ms var(--ease-out) both;
+}
+
+/* ─── 胶囊：整体入场 ─── */
+@keyframes capsule-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.capsule-in {
+  animation: capsule-in 180ms var(--ease-out) both;
+}
+
+/* ─── 胶囊：录音指示点呼吸 + 光晕扩散 ─── */
+@keyframes capsule-breathe {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.86);
+  }
+}
+
+.capsule-dot {
+  animation: capsule-breathe 1.5s ease-in-out infinite;
+}
+
+@keyframes capsule-halo {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.9);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+.capsule-halo {
+  animation: capsule-halo 1.8s ease-out infinite;
+}
+
+/* ─── 胶囊：转写行前的文字光标 ─── */
+@keyframes capsule-caret {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0.18;
+  }
+}
+
+.capsule-caret {
+  animation: capsule-caret 1.15s var(--ease-in-out) infinite;
+}
+
+/* ─── 胶囊：处理中的扫光进度条 ─── */
+@keyframes capsule-sweep {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+.capsule-sweep {
+  animation: capsule-sweep 1.5s var(--ease-in-out) infinite;
+}
+
+/* ─── 胶囊：完成态的对勾弹入 ─── */
+@keyframes capsule-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.capsule-pop {
+  animation: capsule-pop 260ms var(--ease-out) both;
+}
+
+/* 实时转写只显示末尾：用左缘渐隐代替第二个省略号，少一点视觉噪音 */
+.capsule-tail {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 18px, #000 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 18px, #000 100%);
+}
+
+/* ─── 减弱动效 ─── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── 滚动条 ─── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-text-tertiary);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
